@@ -108,7 +108,7 @@ func (c Client) doRequest(request any, fragments ...string) (*APIResponse, error
 	return &apiResp, nil
 }
 
-func parseError(req *http.Request, resp *http.Response) error {
+func parseError(_ *http.Request, resp *http.Response) error {
 	raw, _ := io.ReadAll(resp.Body)
 
 	var errAPI APIResponse
