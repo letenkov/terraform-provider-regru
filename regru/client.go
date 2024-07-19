@@ -1,6 +1,7 @@
 package regru
 
 import (
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -19,19 +20,49 @@ type Client struct {
 	HTTPClient *http.Client
 }
 
-func NewClient(username, password, apiEndpoint string) *Client {
-	if apiEndpoint == "" {
-		apiEndpoint = defaultBaseURL
+func loadTLSConfig(certFile, keyFile string) (*tls.Config, error) {
+	// Load client cert
+	cert, err := tls.LoadX509KeyPair(certFile, keyFile)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load client certificate: %w", err)
 	}
 
-	baseURL, _ := url.Parse(apiEndpoint)
+	// Setup TLS config
+	tlsConfig := &tls.Config{
+		Certificates:       []tls.Certificate{cert},
+		InsecureSkipVerify: true, // Disable server certificate verification
+	}
 
-	return &Client{
+	return tlsConfig, nil
+}
+
+func NewClient(username, password, apiEndpoint, certFile, keyFile string) (*Client, error) {
+	if apiEndpoint == "" {
+		apiEndpoint = defaultApiEndpoint
+	}
+
+	baseURL, err := url.Parse(apiEndpoint)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse API endpoint: %w", err)
+	}
+
+	tlsConfig, err := loadTLSConfig(certFile, keyFile)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load TLS config: %w", err)
+	}
+
+	transport := &http.Transport{
+		TLSClientConfig: tlsConfig,
+	}
+
+	client := &Client{
 		username:   username,
 		password:   password,
 		baseURL:    baseURL,
-		HTTPClient: &http.Client{Timeout: 5 * time.Second},
+		HTTPClient: &http.Client{Timeout: 5 * time.Second, Transport: transport},
 	}
+
+	return client, nil
 }
 
 func (c Client) doRequest(request any, fragments ...string) (*APIResponse, error) {

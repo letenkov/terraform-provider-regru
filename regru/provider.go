@@ -30,6 +30,18 @@ func Provider() *schema.Provider {
 				Default:     defaultApiEndpoint,
 				Description: "reg.ru API endpoint",
 			},
+			"cert_file": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("REGRU_CERT_FILE", nil),
+				Description: "Path to the client SSL certificate file",
+			},
+			"key_file": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("REGRU_KEY_FILE", nil),
+				Description: "Path to the client SSL key file",
+			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"regru_dns_record": resourceRegruDNSRecord(),
@@ -42,9 +54,14 @@ func configureProvider(d *schema.ResourceData) (interface{}, error) {
 	username := d.Get("api_username").(string)
 	password := d.Get("api_password").(string)
 	endpoint := d.Get("api_endpoint").(string)
+	certFile := d.Get("cert_file").(string)
+	keyFile := d.Get("key_file").(string)
 
 	if (username != "") && (password != "") {
-		c := NewClient(username, password, endpoint)
+		c, err := NewClient(username, password, endpoint, certFile, keyFile)
+		if err != nil {
+			return nil, err
+		}
 
 		return c, nil
 	}
