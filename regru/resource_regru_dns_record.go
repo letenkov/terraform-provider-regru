@@ -61,6 +61,11 @@ func resourceRegruDNSRecordCreate(d *schema.ResourceData, m interface{}) error {
 			CreateRecordRequest: baseRequest,
 			IPAddr:              value,
 		}
+	case "AAAA":
+		request = CreateAAAARecordRequest{
+			CreateRecordRequest: baseRequest,
+			IPAddr:              value,
+		}
 	case "CNAME":
 		request = CreateCnameRecordRequest{
 			CreateRecordRequest: baseRequest,
@@ -68,7 +73,9 @@ func resourceRegruDNSRecordCreate(d *schema.ResourceData, m interface{}) error {
 		}
 	case "MX":
 		fields := strings.Fields(value)
-
+		if len(fields) != 2 {
+			return fmt.Errorf("invalid MX record format, expected 'priority mailserver'")
+		}
 		request = CreateMxRecordRequest{
 			CreateRecordRequest: baseRequest,
 			MailServer:          fields[1],

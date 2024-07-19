@@ -1,4 +1,4 @@
-version := 0.1.8
+version := 0.2.0
 #path := $$HOME/.terraform.d/plugins/github.com/murtll/regru/${version}/linux_amd64
 #path := $$HOME/.terraform.d/plugins/github.com/murtll/regru/${version}/darwin_arm64
 path := $$HOME/.terraform.d/plugins/registry.terraform.io/murtll/regru/${version}/darwin_arm64

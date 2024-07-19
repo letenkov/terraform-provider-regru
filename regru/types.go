@@ -40,7 +40,7 @@ type Answer struct {
 type DomainResponse struct {
 	Result string `json:"result"`
 
-	DName     string `json:"dname"`
+	DName string `json:"dname"`
 
 	ErrorCode string `json:"error_code,omitempty"`
 	ErrorText string `json:"error_text,omitempty"`
@@ -60,6 +60,11 @@ type CreateRecordRequest struct {
 }
 
 type CreateARecordRequest struct {
+	CreateRecordRequest
+	IPAddr string `json:"ipaddr,omitempty"`
+}
+
+type CreateAAAARecordRequest struct {
 	CreateRecordRequest
 	IPAddr string `json:"ipaddr,omitempty"`
 }
