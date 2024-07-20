@@ -10,8 +10,6 @@ import (
 	"time"
 )
 
-const defaultBaseURL = "https://api.reg.ru/api/regru2/"
-
 type Client struct {
 	username string
 	password string
