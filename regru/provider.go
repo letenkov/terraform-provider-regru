@@ -2,6 +2,7 @@ package regru
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
@@ -32,13 +33,13 @@ func Provider() *schema.Provider {
 			},
 			"cert_file": {
 				Type:        schema.TypeString,
-				Optional:    true,
+				Required:    true,
 				DefaultFunc: schema.EnvDefaultFunc("REGRU_CERT_FILE", nil),
 				Description: "Path to the client SSL certificate file",
 			},
 			"key_file": {
 				Type:        schema.TypeString,
-				Optional:    true,
+				Required:    true,
 				DefaultFunc: schema.EnvDefaultFunc("REGRU_KEY_FILE", nil),
 				Description: "Path to the client SSL key file",
 			},
@@ -57,14 +58,30 @@ func configureProvider(d *schema.ResourceData) (interface{}, error) {
 	certFile := d.Get("cert_file").(string)
 	keyFile := d.Get("key_file").(string)
 
-	if (username != "") && (password != "") {
-		c, err := NewClient(username, password, endpoint, certFile, keyFile)
-		if err != nil {
-			return nil, err
-		}
-
-		return c, nil
+	// Проверяем обязательные параметры
+	if username == "" {
+		return nil, errors.New("missing required parameter: api_username")
+	}
+	if password == "" {
+		return nil, errors.New("missing required parameter: api_password")
+	}
+	if certFile == "" {
+		return nil, errors.New("missing required parameter: cert_file")
+	}
+	if keyFile == "" {
+		return nil, errors.New("missing required parameter: key_file")
 	}
 
-	return nil, errors.New("empty username and password not allowed")
+	// Устанавливаем значение по умолчанию для endpoint, если он не указан
+	if endpoint == "" {
+		endpoint = defaultApiEndpoint
+	}
+
+	// Создаем клиент с сертификатом
+	c, err := NewClient(username, password, endpoint, certFile, keyFile)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create client: %w", err)
+	}
+
+	return c, nil
 }
